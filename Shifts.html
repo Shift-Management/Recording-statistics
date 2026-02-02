@@ -32,7 +32,10 @@
     body {
       margin: 0; font-family: 'Cairo', sans-serif;
       background-color: var(--bg-body); color: var(--text-main);
-      height: 100vh; display: flex; overflow: hidden;
+      /* Fix for Mobile Viewport Height */
+      height: 100vh; 
+      height: 100dvh; 
+      display: flex; overflow: hidden;
     }
 
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -215,6 +218,7 @@
     .v-option[data-val="no"].active { background: var(--success); color: white; }
     .v-option[data-val="yes"].active { background: var(--danger); color: white; }
 
+    /* UPDATED BUTTONS FOR RECORD */
     .excuse-btn {
         background: rgba(139, 92, 246, 0.1); border: 1px solid #8b5cf6; color: #8b5cf6;
         font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer;
@@ -238,7 +242,11 @@
     .d-leg-color { width: 8px; height: 8px; border-radius: 50%; }
 
     @media (max-width: 768px) {
-      .app-container { flex-direction: column; height: 100vh; }
+      .app-container { 
+          flex-direction: column; 
+          height: 100vh; /* Fallback */
+          height: 100dvh; /* Dynamic Height for iOS/Mobile */
+      }
       .top-header { display: none !important; }
       #mobileMenuBtn { display: flex !important; }
       .sidebar { position: fixed; top: 0; right: 0; width: 75%; max-width: 300px; height: 100%; transform: translateX(100%); z-index: 2000; box-shadow: -5px 0 20px rgba(0,0,0,0.5); padding-top: 60px; background: var(--bg-sidebar); align-items: stretch; }
@@ -249,11 +257,49 @@
       .sidebar .user-info { display: block; }
       .nav-item { padding: 15px; font-size: 14px; border-radius: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
       .nav-item span { margin-left: 10px; }
-      .content-scroll { padding: 20px; padding-top: 70px; } 
-      .transfer-area { flex-direction: column; height: auto !important; }
-      .list-panel { height: 300px; flex: none; }
-      .radio-label { padding: 12px 18px; font-size: 13px; margin-bottom: 5px; }
+      
+      /* Mobile Content Scroll Fix */
+      .content-scroll { 
+          padding: 20px; 
+          padding-top: 70px;
+          padding-bottom: 120px; /* EXTRA Padding for Save Buttons */
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+      } 
+      
+      .transfer-area { 
+          flex-direction: column; 
+          height: auto !important; 
+          flex: 1; /* Allow flexible height */
+          display: flex;
+      }
+      .list-panel { 
+          height: 300px; 
+          flex: none; 
+          margin-bottom: 10px;
+      }
+      
+      /* Smaller & Responsive Status Buttons */
+      .status-selector {
+          gap: 6px;
+      }
+      .radio-label { 
+          padding: 6px 10px; /* Smaller Padding */
+          font-size: 11px; /* Smaller Font */
+          margin-bottom: 0; 
+          flex: 1 0 auto; /* Distribute evenly */
+          justify-content: center;
+      }
+      
       .auth-box { width: 100%; }
+
+      /* Mobile Filters Grid */
+      .grid-filters {
+          display: grid;
+          grid-template-columns: 1fr 1fr; /* Two columns */
+          gap: 8px;
+          padding: 10px;
+      }
 
       #status_manual_text { padding: 8px; font-size: 13px; height: 40px; }
       .other-input-container { padding-top: 5px !important; margin-top: 5px !important; }
@@ -371,7 +417,7 @@
             </div>
           </div>
           <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap">
-            <button class="btn-primary" onclick="submitDaily()" style="flex:2">💾 حفظ المناوبة</button>
+            <button class="btn-primary" onclick="submitDaily()" style="flex:2">💾 حفظ تحضير المناوبة</button>
             <button class="btn-secondary" onclick="toggleSubmittedList()" style="flex:1; border-color:var(--success); color:var(--success)">👁️ عرض المرفوع اليوم</button>
           </div>
           <div id="dailyMsg" style="margin-top:10px"></div>
@@ -726,8 +772,6 @@
   function toHijri(dateStr) {
       if(!dateStr) return "-";
       const date = new Date(dateStr);
-      // 'en-TN-u-ca-islamic-umalqura' provides proper numbering, ar-SA sometimes uses names.
-      // We use 'ar-SA-u-ca-islamic-umalqura' for Arabic locale context
       return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
           day: 'numeric', month: 'long', year: 'numeric' 
       }).format(date);
@@ -737,11 +781,9 @@
     $('d_date').value = $('st_from').value = $('st_to').value = today();
     $('dateNow').textContent = new Date().toLocaleDateString('ar-SA');
     
-    // Fill Selects with DEFAULT DEPARTURE
     [ 'd_hall', 'm_hall_filter', 'm_new_hall', 'st_hall', 'rec_hall' ].forEach(id => fillSelect(id, HALLS, true));
     [ 'd_shift', 'm_shift_filter', 'm_new_shift', 'st_shift', 'rec_shift' ].forEach(id => fillSelect(id, SHIFTS, true));
     
-    // Fill Type Selects & Set Default to Departure
     [ 'd_type', 'm_type_filter', 'm_new_type', 'st_type', 'rec_type' ].forEach(id => {
         const el = $(id); el.innerHTML = '<option value="">الكل</option>';
         el.innerHTML += `<option value="departure" selected>مغادرة</option>`;
@@ -1102,7 +1144,7 @@
       if(error) alert('خطأ: ' + error.message); else { loadRequests(); checkNotifications(); }
   }
 
-  // --- Main Data Loading (Manual Employees Only) ---
+  // --- Main Data Loading ---
   async function loadEmployees(){
     const {data} = await sb.from('employees')
         .select('*')
