@@ -65,7 +65,8 @@
       <nav style="display:flex; flex-direction:column; gap:5px; width:100%">
         <div class="nav-item active" onclick="go('daily')" id="nav-daily"><span>📝</span> الحضور اليومي</div>
         <div class="nav-item" onclick="go('monthly')" id="nav-monthly"><span>✈️</span> إنتاجية المسافرين</div>
-        <div class="nav-item" onclick="go('record')" id="nav-record"><span>📋</span> سجل الفرد</div>        <div class="nav-item" onclick="go('stats')" id="nav-stats"><span>📊</span> الإحصائيات العامة</div>
+        <div class="nav-item" onclick="go('record')" id="nav-record"><span>📋</span> سجل الفرد</div>
+        <div class="nav-item" onclick="go('stats')" id="nav-stats"><span>📊</span> الإحصائيات العامة</div>
         <div class="nav-item" onclick="go('absence')" id="nav-absence"><span>🚫</span> قسم الغياب</div>
         <div class="nav-item" onclick="go('manage')" id="nav-manage"><span>⚙️</span> نقل / تعديل</div>
         <div class="nav-item hidden" onclick="go('requests')" id="nav-requests" style="border-color:var(--warning); color:var(--warning)">
@@ -173,35 +174,56 @@
             <div style="flex:2"><label>اختر الفرد</label><select id="rec_emp_select" class="form-control"></select></div>
             <div style="display:flex; align-items:flex-end"><button class="btn-primary" onclick="loadSoldierRecord()">عرض السجل</button></div>
           </div>
+
           <div id="soldier-profile" class="hidden">
             <div class="profile-header">
-              <div style="display:flex; gap:15px; align-items:center; width:100%">
-                  <div style="font-size:40px; background:rgba(255,255,255,0.1); width:60px; height:60px; display:grid; place-items:center; border-radius:50%">👮</div>
-                  <div style="flex:1">
-                    <h2 id="p_name" style="margin:0"></h2>
-                    <div style="margin-top:5px; color:var(--text-muted)">
-                       <span id="p_rank" style="background:var(--primary); padding:2px 8px; border-radius:4px; color:white; font-size:12px"></span>
-                       <span id="p_loc" style="margin-right:10px; font-size:13px"></span>
+                
+                <div class="profile-right-section">
+                    <div class="profile-avatar">👨‍✈️</div>
+                    <div class="profile-details">
+                        <div>
+                            <h2 id="p_name" style="margin:0; font-size:18px; line-height:1.2;"></h2>
+                            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                                <span id="p_rank" style="color:var(--primary); font-weight:bold"></span> | 
+                                <span id="p_loc"></span>
+                            </div>
+                        </div>
+
+                        <div class="profile-stat-group">
+                            <div class="mini-stat">
+                                <div class="val" id="p_count_absent" style="color:var(--danger)">0</div>
+                                <div class="lbl">غياب</div>
+                            </div>
+                            <div class="mini-stat">
+                                <div class="val" id="p_count_absent_excused" style="color:#fcd34d">0</div>
+                                <div class="lbl">غياب بعذر</div>
+                            </div>
+                            <div class="mini-stat">
+                                <div class="val" id="p_count_late" style="color:var(--warning)">0</div>
+                                <div class="lbl">تأخير</div>
+                            </div>
+                            <div class="mini-stat">
+                                <div class="val" id="p_count_early" style="color:var(--success)">0</div>
+                                <div class="lbl">مبكر</div>
+                            </div>
+                            <div class="mini-stat">
+                                <div class="val" id="p_count_vio" style="color:var(--danger)">0</div>
+                                <div class="lbl">مخالفات</div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  <div style="text-align:center">
-                    <div style="font-size:12px;color:var(--text-muted)">الإنتاجية</div>
-                    <div style="font-size:24px; font-weight:bold; color:var(--productivity)" id="p_total_prod">0</div>
-                  </div>
-              </div>
-              <div class="profile-stat-group">
-                  <div class="mini-stat"><div class="val" id="p_count_absent" style="color:var(--danger)">0</div><div class="lbl">غياب</div></div>
-                  <div class="mini-stat"><div class="val" id="p_count_absent_excused" style="color:#d946ef">0</div><div class="lbl">غياب/بعذر</div></div>
-                  <div class="mini-stat"><div class="val" id="p_count_late" style="color:var(--warning)">0</div><div class="lbl">تأخير</div></div>
-                  <div class="mini-stat"><div class="val" id="p_count_early" style="color:var(--success)">0</div><div class="lbl">مبكر</div></div>
-                  <div class="mini-stat"><div class="val" id="p_count_excused" style="color:#8b5cf6">0</div><div class="lbl">استئذان</div></div>
-                  <div class="mini-stat"><div class="val" id="p_count_vio" style="color:var(--danger)">0</div><div class="lbl">مخالفات</div></div>
-              </div>
+                </div>
+                
+                <div class="productivity-box">
+                    <div style="font-size:10px; color:var(--productivity); margin-bottom:4px; font-weight:bold;">الإنتاجية</div>
+                    <div style="font-size:22px; font-weight:800; color:var(--text-main)" id="p_total_prod">0</div>
+                </div>
+
             </div>
             
             <div class="record-grid">
                 <div class="stats-card" style="display:flex; flex-direction:column; align-items:center; margin:0">
-                     <h3 style="margin:0 0 15px 0; align-self:flex-start; font-size:16px;">🧭 مستوى الانضباط</h3>
+                     <h3 style="margin:0 0 15px 0; align-self:flex-start; font-size:14px;">🧭 مستوى الانضباط</h3>
                      <div class="gauge-container">
                          <svg class="gauge-svg" viewBox="0 0 200 100">
                              <path class="gauge-arc-bg" d="M20 90 A 80 80 0 0 1 180 90" />
@@ -215,22 +237,25 @@
                 </div>
 
                 <div class="stats-card doughnut-card" style="margin:0">
-                    <h3 style="margin:0 0 15px 0; align-self:flex-start; font-size:16px;">📊 توزيع الحالات</h3>
-                    <div id="p_doughnut" class="doughnut-container">
-                        <div class="doughnut-hole">0</div>
+                    <div class="doughnut-wrapper">
+                        <div id="p_doughnut" class="doughnut-container"></div>
+                        <div class="doughnut-hole">
+                            <div class="doughnut-number" id="p_total_events">0</div>
+                            <div class="doughnut-label">حالة</div>
+                        </div>
                     </div>
                     <div id="p_doughnut_legend" class="doughnut-legend"></div>
                 </div>
 
                 <div class="stats-card" style="margin:0">
-                  <div style="font-weight:bold; font-size:14px; margin-bottom:15px">📈 الرسم البياني للإنتاجية (السنوي)</div>
+                  <div style="font-weight:bold; font-size:14px; margin-bottom:15px">📈 الرسم البياني (السنوي)</div>
                   <div id="p_chart_container" style="display:flex; align-items:flex-end; height:120px; gap:6px; padding-bottom:10px; border-bottom:1px solid var(--border)"></div>
                   <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:9px; color:var(--text-muted)" id="p_chart_labels"></div>
                 </div>
             </div>
 
             <div class="stats-card">
-              <div style="font-weight:bold; margin-bottom:10px">سجل الحضور والغياب (هجري)</div>
+              <div style="font-weight:bold; margin-bottom:10px; font-size:14px">سجل الحضور والغياب (هجري)</div>
               <div style="max-height:300px; overflow-y:auto">
                 <table class="score-table">
                   <thead><tr><th>التاريخ الهجري</th><th>الحالة</th><th>ملاحظة</th></tr></thead>
@@ -261,7 +286,8 @@
 
                        <div style="background:rgba(59, 130, 246, 0.05); padding:15px; border-radius:10px; border:1px solid var(--border); text-align:center">
                         <p style="font-size:12px; margin:0 0 10px 0; color:var(--text-main)">هل يوجد عذر مقبول للغياب؟</p>
-                        <div style="display:flex; gap:10px; justify-content:center; flex-wrap: wrap;"> <button class="btn-primary" style="font-weight:bold; font-size:12px;" onclick="markAsExcused()">✅ نعم وتم الرفع في خدماتي والتاكد منه</button>
+                        <div style="display:flex; gap:10px; justify-content:center; flex-wrap: wrap;"> 
+                            <button class="btn-primary" style="font-weight:bold; font-size:12px;" onclick="markAsExcused()">✅ نعم وتم الرفع في خدماتي والتاكد منه</button>
                             <button class="btn-danger" style="font-weight:bold; font-size:12px;" onclick="markAsUnexcused()">❌ غياب بدون عذر</button>
                         </div>
                     </div>
