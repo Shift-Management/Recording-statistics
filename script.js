@@ -68,21 +68,35 @@ window.onload = async () => {
   if($('dateNow')) $('dateNow').textContent = toHijri(new Date());
   
   // تعبئة القوائم المنسدلة
-  const hallSelects = ['d_hall', 'm_hall_filter', 'm_new_hall', 'st_hall', 'rec_hall', 'add_hall'];
+const hallSelects = ['d_hall', 'm_hall_filter', 'm_new_hall', 'st_hall', 'rec_hall', 'add_hall', 'ab_hall'];
   hallSelects.forEach(id => { if($(id)) fillSelect(id, HALLS, true) });
   
-  const shiftSelects = ['d_shift', 'm_shift_filter', 'm_new_shift', 'st_shift', 'rec_shift', 'add_shift'];
+  // 2. تعريف مصفوفة المناوبات (أضفنا ab_shift في النهاية)
+  const shiftSelects = ['d_shift', 'm_shift_filter', 'm_new_shift', 'st_shift', 'rec_shift', 'add_shift', 'ab_shift'];
   shiftSelects.forEach(id => { if($(id)) fillSelect(id, SHIFTS, true) });
   
-  const typeSelects = ['d_type', 'm_type_filter', 'm_new_type', 'st_type', 'rec_type', 'add_type'];
+  // 3. تعريف مصفوفة الأنواع (أضفنا ab_type وعدلنا المنطق قليلاً)
+  const typeSelects = ['d_type', 'm_type_filter', 'm_new_type', 'st_type', 'rec_type', 'add_type', 'ab_type'];
   typeSelects.forEach(id => {
       const el = $(id); 
       if(el) {
+          // تعبئة الخيارات: الكل، مغادرة، قدوم
           el.innerHTML = '<option value="">الكل</option><option value="departure" selected>مغادرة</option><option value="arrival">قدوم</option>';
-          el.value = 'departure'; 
+          
+          // هذا السطر مهم:
+          // إذا كانت القائمة هي قائمة الغياب (ab_type)، اجعل الخيار الافتراضي فارغاً (أي اختر "الكل")
+          // أما باقي القوائم، اجعل الخيار الافتراضي "مغادرة"
+          if(id === 'ab_type') el.value = ""; else el.value = 'departure'; 
       }
   });
-
+const recFilter = $('record_filter_status');
+  if(recFilter) {
+      // إفراغ وإضافة "الكل"
+      recFilter.innerHTML = '<option value="all">عرض الكل</option>';
+      for (const [key, val] of Object.entries(STATUSES)) {
+          recFilter.innerHTML += `<option value="${key}">${val.label}</option>`;
+      }
+  }
   const mSel = $('m_month');
   const eSel = $('e_month');
   if(mSel && eSel) {
@@ -265,14 +279,32 @@ async function loadAbsenceSection() {
     const list = $('absentEmployeesList');
     list.innerHTML = 'جاري التحميل...';
     
-    const { data: absEvents } = await sb.from('events')
-      .select('id, event_date, employee_id, employees!inner(id, name, rank, hall, shift)')
+    // 1. جلب قيم الفلاتر
+    const h = $('ab_hall') ? $('ab_hall').value : '';
+    const s = $('ab_shift') ? $('ab_shift').value : '';
+    const t = $('ab_type') ? $('ab_type').value : '';
+
+    // 2. بناء الاستعلام مع الفلاتر
+    let query = sb.from('events')
+      .select('id, event_date, employee_id, employees!inner(id, name, rank, hall, shift, hall_type)')
       .eq('status', 'absent')
       .is('note', null) 
       .order('event_date', {ascending: false});
 
+    // 3. تطبيق الفلترة (Server-side Filtering on Relations)
+    if(h) query = query.eq('employees.hall', h);
+    if(s) query = query.eq('employees.shift', s);
+    if(t) query = query.eq('employees.hall_type', t);
+
+    const { data: absEvents, error } = await query;
+
+    if(error) {
+        list.innerHTML = `<div style="color:var(--danger)">خطأ: ${error.message}</div>`;
+        return;
+    }
+
     if(!absEvents || absEvents.length === 0) {
-        list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted)">لا يوجد غياب معلق (الكل معالج) ✅</div>';
+        list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted)">لا يوجد غياب معلق لهذه الفلاتر ✅</div>';
         return;
     }
 
@@ -288,7 +320,7 @@ async function loadAbsenceSection() {
         div.className = 'list-item';
         div.innerHTML = `
           <div><span style="font-weight:bold">${emp.rank} ${emp.name}</span>
-          <span style="font-size:11px; color:var(--text-muted); display:block">${emp.hall}-${emp.shift} | معلق: <b style="color:var(--danger)">${emp.events.length}</b></span></div>
+          <span style="font-size:11px; color:var(--text-muted); display:block">${emp.hall}-${emp.shift} (${emp.hall_type === 'arrival' ? 'قدوم' : 'مغادرة'}) | معلق: <b style="color:var(--danger)">${emp.events.length}</b></span></div>
           <button class="btn-secondary" style="width:auto; font-size:11px; margin:0" onclick="showAbsenceDetails('${emp.id}')">عرض</button>
         `;
         list.appendChild(div);

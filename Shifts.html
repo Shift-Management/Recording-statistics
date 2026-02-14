@@ -266,7 +266,13 @@
           </div>
         </div>
 
-        <div id="sec-absence" class="section">
+   <div id="sec-absence" class="section">
+            <div class="grid-filters">
+                <div><label>الصالة</label><select id="ab_hall" class="form-control" onchange="loadAbsenceSection()"></select></div>
+                <div><label>المناوبة</label><select id="ab_shift" class="form-control" onchange="loadAbsenceSection()"></select></div>
+                <div><label>النوع</label><select id="ab_type" class="form-control" onchange="loadAbsenceSection()"></select></div>
+                <div style="display:flex; align-items:flex-end"><button class="btn-primary" onclick="loadAbsenceSection()">تحديث القائمة</button></div>
+            </div>
             <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px">
                 <div class="stats-card" style="height:fit-content">
                     <h3 style="margin:0 0 15px 0; border-bottom:1px solid var(--border); padding-bottom:10px">⚠️ قائمة المتغيبين (بدون عذر)</h3>
